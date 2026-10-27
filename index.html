@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台指期三大法人未平倉合計與台股走勢疊加及未來半年走勢預測</title>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            bgDark: '#0b0f19',
+            cardDark: '#111827',
+            borderDark: '#1f2937',
+            accentCyan: '#06b6d4',
+            accentGreen: '#10b981',
+            accentRed: '#f43f5e',
+            accentGold: '#f59e0b',
+            accentPurple: '#a855f7'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #111827;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #374151;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto w-full flex-1 flex flex-col space-y-8">
+    
+    <!-- ==================== HEADER ==================== -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-gray-800 gap-4">
+      <div>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-900/50 text-cyan-400 border border-cyan-700/50">
+            雙軸疊加走勢圖
+          </span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-900/40 text-emerald-300 border border-emerald-700/50">
+            三大法人合計未平倉
+          </span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-900/40 text-amber-300 border border-amber-700/50">
+            多情境機率權重推演
+          </span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-bold mt-2 tracking-tight text-white flex items-center gap-2">
+          三大法人臺指期未平倉「合計」× 台股加權指數
+        </h1>
+        <p class="text-sm text-gray-400 mt-1">
+          2024~2026 歷史實證疊加分析 & 結合 Fed 利率、AI 資本支出、匯率與籌碼結構之未來半年推演
+        </p>
+      </div>
+
+      <!-- Quick Status Card -->
+      <div class="bg-gray-900/80 border border-gray-800 rounded-xl p-3.5 flex items-center gap-6 shadow-lg">
+        <div>
+          <div class="text-xs text-gray-400 font-medium">今日未平倉合計 (2026/10/27)</div>
+          <div class="text-xl font-bold text-emerald-400 flex items-center gap-1.5 mt-0.5">
+            +463 <span class="text-xs font-normal text-emerald-300/80">口 (由負翻正)</span>
+          </div>
+        </div>
+        <div class="w-px h-8 bg-gray-800"></div>
+        <div>
+          <div class="text-xs text-gray-400 font-medium">加權指數最新收盤</div>
+          <div class="text-xl font-bold text-cyan-400 flex items-center gap-1.5 mt-0.5">
+            46,096.23 <span class="text-xs font-normal text-cyan-300/80">點</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== KEY INFO METRICS ==================== -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-gradient-to-br from-gray-900 to-gray-800/60 border border-gray-800 rounded-xl p-4">
+        <div class="text-xs text-gray-400">三大法人未平倉「合計」真實結構</div>
+        <div class="text-lg font-bold text-white mt-1 flex items-baseline gap-2">
+          <span class="text-emerald-400">+463 口</span>
+          <span class="text-xs text-amber-400 font-normal">投信硬扛 vs 外資高空單</span>
+        </div>
+        <div class="text-xs text-gray-400 mt-2 flex justify-between">
+          <span>外資: <b class="text-rose-400">-86,043</b></span>
+          <span>投信: <b class="text-emerald-400">+85,052</b></span>
+          <span>自營: <b class="text-emerald-400">+1,454</b></span>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-gray-900 to-gray-800/60 border border-gray-800 rounded-xl p-4">
+        <div class="text-xs text-gray-400">前兩次翻正歷史實證 (2026年7月)</div>
+        <div class="text-lg font-bold text-amber-300 mt-1 flex items-baseline gap-2">
+          7/22 先殺 -12.2% ➔ 7/31 真見底
+        </div>
+        <div class="text-xs text-gray-400 mt-2">
+          7/22 翻正後先從 44,850 殺至 39,384 洗清浮額，7/31 再次翻正 (+433口) 才真正起漲至 49,968
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-gray-900 to-gray-800/60 border border-gray-800 rounded-xl p-4">
+        <div class="text-xs text-gray-400">2026 年累計漲幅與技術位階</div>
+        <div class="text-lg font-bold text-white mt-1 flex items-baseline gap-3">
+          <span class="text-cyan-400">YTD +57.1%</span>
+          <span class="text-xs text-gray-400">季線 MA60 (46,281) 保衛戰</span>
+        </div>
+        <div class="text-xs text-gray-400 mt-2">
+          今年自 29,349 最高飆至 49,968 (+70.2%)，五萬大關前雙重頂拉回，RSI(14)=33.5
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SECTION 1: 歷史走勢疊加圖 ==================== -->
+    <section class="bg-gray-900 border border-gray-800 rounded-2xl p-4 md:p-6 shadow-2xl flex flex-col space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-gray-800">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>📊</span> 歷史走勢雙軸疊加圖表 (2024 ~ 2026)
+          </h2>
+          <p class="text-xs text-gray-400 mt-0.5">
+            青藍色線為加權指數收盤價（左軸），彩色柱體為三大法人台指期未平倉「合計」口數（右軸，綠正紅負）
+          </p>
+        </div>
+
+        <!-- Controls Toolbar -->
+        <div class="flex items-center gap-1.5" id="rangeButtons">
+          <button data-range="all" class="range-btn px-3 py-1.5 rounded-lg text-xs font-medium transition bg-cyan-600 text-white shadow-sm">
+            全部 (2024~2026)
+          </button>
+          <button data-range="2026" class="range-btn px-3 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white hover:bg-gray-800">
+            2026 年
+          </button>
+          <button data-range="2025" class="range-btn px-3 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white hover:bg-gray-800">
+            2025 年
+          </button>
+          <button data-range="2024" class="range-btn px-3 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white hover:bg-gray-800">
+            2024 年
+          </button>
+          <button data-range="6m" class="range-btn px-3 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white hover:bg-gray-800">
+            近 6 個月
+          </button>
+        </div>
+      </div>
+
+      <!-- Chart Canvas -->
+      <div class="relative w-full h-[500px]">
+        <canvas id="marketChart"></canvas>
+      </div>
+
+      <!-- Legend -->
+      <div class="pt-2 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-3 border-t border-gray-800/80">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-1 rounded-full bg-cyan-400"></span>
+            <span class="text-gray-300">台股加權指數 TAIEX (左軸，點)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded bg-emerald-500/40 border border-emerald-500/80"></span>
+            <span class="text-gray-300">三大法人未平倉合計 ＞ 0 (右軸，口數)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded bg-rose-500/40 border border-rose-500/80"></span>
+            <span class="text-gray-300">三大法人未平倉合計 ＜ 0 (右軸，口數)</span>
+          </div>
+        </div>
+        <div class="text-gray-400">
+          合計公式：自營商淨未平倉 + 投信淨未平倉 + 外資及陸資淨未平倉
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 2: 全方位五維度深度審視 ==================== -->
+    <section class="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl space-y-6">
+      <div class="border-b border-gray-800 pb-4">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded text-xs font-semibold bg-amber-900/60 text-amber-300 border border-amber-700/50">
+            全方位客觀審視
+          </span>
+          <h2 class="text-xl font-bold text-white">2026年10月底真實總經、AI、匯率與籌碼五維度解析</h2>
+        </div>
+        <p class="text-sm text-gray-400 mt-1">
+          修正過度樂觀偏誤：結合台積電 Q3 財報、華許 Fed 升息政策、Anthropic IPO 地緣風險與 7 月歷史回測真相
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+        <!-- 1. AI 產業與地緣風險 -->
+        <div class="bg-gray-800/40 border border-gray-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center gap-2 text-cyan-400 font-semibold">
+            <span>🤖</span> 1. AI 基本面超強 vs. 資本融資化與地緣折價
+          </div>
+          <p class="text-gray-300 text-xs leading-relaxed">
+            <b>基本面護城河：</b>台積電 10/15 法說會繳出單季 EPS <b>29.43 元</b> 歷史新高、毛利率 66.4%、2 奈米佔比達 8%，並上修全年美元營收成長至 <b>44%</b>，封鎖大盤長線崩盤風險。<br>
+            <b>潛在逆風：</b>在高利率下，CSP 巨頭資本支出轉向舉債與股權融資（如 Meta 近期啟動大規模 AI 融資計畫）；且 10 月底 <b>Anthropic 遞交 IPO 申請書</b>，明確將「全球先進算力過度集中台灣台積電」列為核心系統風險，加深外資對台股的地緣避險需求。
+          </p>
+        </div>
+
+        <!-- 2. 國際股市與聯準會 -->
+        <div class="bg-gray-800/40 border border-gray-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center gap-2 text-amber-400 font-semibold">
+            <span>🌐</span> 2. 國際總經：Fed 處於 4% 高利率緊縮，非降息順風車
+          </div>
+          <p class="text-gray-300 text-xs leading-relaxed">
+            <b>關鍵事實修正：</b>美國 9 月 CPI 反彈至 3.7%，聯準會（主席華許 Kevin Warsh）於 9 月剛<b>升息一碼至 3.75%–4.00%</b>，10 年期美債殖利率逼近 <b>5.0%</b> 大關！10/29 凌晨 FOMC 雖預期暫停升息，但 12 月是否再升息仍是市場緊箍咒。高無風險利率嚴重壓抑 5 萬點以上的高本益比擴張空間。
+          </p>
+        </div>
+
+        <!-- 3. 台幣匯率與外資動向 -->
+        <div class="bg-gray-800/40 border border-gray-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center gap-2 text-rose-400 font-semibold">
+            <span>💵</span> 3. 台幣匯率與籌碼：外資 -8.6 萬口空單 vs 投信 +8.5 萬口
+          </div>
+          <p class="text-gray-300 text-xs leading-relaxed">
+            <b>匯率弱勢：</b>新台幣自年中 31.5 一路走貶至 10 月下旬的 <b>32.4 ~ 32.6</b>，顯示外資在台積電創高之際仍持續匯出提款。<br>
+            <b>籌碼恐怖平衡：</b>今日未平倉合計 +463 口，並非外資翻多（外資仍有 <b>-86,043 口</b> 巨額空單），而是國內 ETF 規模擴張使投信被動多單高達 <b>+85,052 口</b> 剛好抵銷。只要外資空單未降至 5 萬口以下，反彈至月線皆易遭外資回馬槍狙擊。
+          </p>
+        </div>
+
+        <!-- 4. 歷史回測真相與技術面 -->
+        <div class="bg-gray-800/40 border border-gray-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center gap-2 text-emerald-400 font-semibold">
+            <span>📉</span> 4. 歷史回測警訊：借鏡 2026/07/22「先殺後彈」雙底模式
+          </div>
+          <p class="text-gray-300 text-xs leading-relaxed">
+            回顧今年 <b>7/22 (+167口) 與 7/23 (+1,033口)</b> 翻正時，指數位於 44,850 點，結果隨後 5 個交易日外資反手大殺，指數暴跌 <b>-5,466 點 (-12.2%)</b> 至 39,384 點清洗浮額，直到 <b>7/31 (+433口) 二度翻正</b>才真正見底並展開萬點行情。目前今年已大漲 70.2% 且五萬點前形成雙頂（49,968），極易重演「先反彈測月線、再下殺洗出第二隻腳」的走勢。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 3: 未來半年至一年三大劇本機率與預測圖 ==================== -->
+    <section class="bg-gray-900 border border-gray-800 rounded-2xl p-4 md:p-6 shadow-2xl flex flex-col space-y-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-gray-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-900/50 text-amber-300 border border-amber-700/50">
+              一年期完整四季週期推演
+            </span>
+            <h2 class="text-lg font-bold text-white">未來半年～1年台指走勢預測圖 (2026/10 ~ 2027/10)</h2>
+          </div>
+          <p class="text-xs text-gray-400 mt-1">
+            前半年完成「8~9個月中段洗盤」➔ 2027 Q2~Q3 迎來「2奈米放量＋Fed轉向降息」主升段突破五萬衝 54,800 ➔ 2027 Q4 高檔拉回測五萬大關
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2" id="forecastHorizonButtons">
+          <button data-horizon="1y" class="horizon-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-amber-500 text-gray-950 shadow-sm">
+            未來 1 年 (至 2027/10)
+          </button>
+          <button data-horizon="6m" class="horizon-btn px-3 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-700">
+            僅看前半年 (至 2027/04)
+          </button>
+        </div>
+      </div>
+
+      <!-- Probability Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="bg-amber-950/20 border-2 border-amber-600/60 rounded-xl p-4 relative">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-amber-400 text-sm">🏆 劇本 B：先蹲後跳再創高</span>
+            <span class="px-2 py-0.5 rounded-full bg-amber-500 text-gray-950 font-extrabold">機率 60%</span>
+          </div>
+          <div class="text-gray-300 mt-1.5 font-mono">前半年：44,200~49,500 ｜ 後半年：衝 54,800 ➔ 收 51,200</div>
+          <p class="text-gray-400 mt-1.5 leading-relaxed">
+            <b>前半年整理收尾：</b>12月回測半年線 44,200 完成自 2026/06 以來共 8 個月的換手；<br>
+            <b>後半年主升突破：</b>2027 Q2 隨 Fed 轉向預防性降息與台積電 2 奈米獲利爆發，正式衝破五萬大關上看 <b>54,800 點</b>，Q4 因 2028 選前避險回測 51,200 點支撐。
+          </p>
+        </div>
+
+        <div class="bg-rose-950/15 border border-rose-800/50 rounded-xl p-4">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-rose-400 text-sm">⚠️ 劇本 C：深度均值回歸與溫和復甦</span>
+            <span class="px-2 py-0.5 rounded-full bg-rose-900/80 text-rose-200 font-bold">機率 25%</span>
+          </div>
+          <div class="text-gray-300 mt-1.5 font-mono">前半年：下探 41,800 ｜ 後半年：緩步回升至 47,500~49,200</div>
+          <p class="text-gray-400 mt-1.5 leading-relaxed">
+            若 Fed 12月再度升息、美債殖利率破 5.2%，引發今年大漲 70% 的深度獲利了結，下探 <b>41,800 點</b> 年線支撐；2027 下半年雖隨基本面回升至 49,200 點，但受制於高利率而無法有效站上五萬點。
+          </p>
+        </div>
+
+        <div class="bg-emerald-950/15 border border-emerald-800/50 rounded-xl p-4">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-emerald-400 text-sm">🚀 劇本 A：極端軋空噴出後泡沫修正</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-900/80 text-emerald-200 font-bold">機率 15%</span>
+          </div>
+          <div class="text-gray-300 mt-1.5 font-mono">前半年：直衝 53,800 ｜ 後半年：噴至 58,200 後急殺回 52,200</div>
+          <p class="text-gray-400 mt-1.5 leading-relaxed">
+            不經洗盤直接軋空突破五萬，2027 盛夏極端噴出至 <b>58,200 點</b>；但因籌碼未經沉澱且估值嚴重透支 2028 年獲利，於 2027 年秋季引發逾 6,000 點的劇烈多殺多修正。
+          </p>
+        </div>
+      </div>
+
+      <!-- Forecast Canvas -->
+      <div class="relative w-full h-[500px]">
+        <canvas id="forecastChart"></canvas>
+      </div>
+
+      <!-- 4-Quarter Roadmap -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 text-xs">
+        <div class="bg-gray-800/50 p-3.5 rounded-xl border border-gray-800">
+          <div class="text-amber-400 font-bold">① 2026 Q4 (11~12月)：洗盤收尾</div>
+          <div class="text-gray-300 mt-1 font-mono">47,600 ➔ 44,200 點</div>
+          <div class="text-gray-400 mt-1 leading-relaxed">11月初先反彈測月線，12月外資空單回馬槍下殺測半年線（44.2k），完成第二隻腳與融資大清洗。</div>
+        </div>
+        <div class="bg-gray-800/50 p-3.5 rounded-xl border border-gray-800">
+          <div class="text-cyan-400 font-bold">② 2027 Q1 (1~3月)：築底蓄勢</div>
+          <div class="text-gray-300 mt-1 font-mono">46,500 ➔ 48,800 點</div>
+          <div class="text-gray-400 mt-1 leading-relaxed">結束自 2026/06 以來長達 8 個月的大箱型整理，台積電元月法說與新春紅盤帶動指數重回五萬關前。</div>
+        </div>
+        <div class="bg-gray-800/50 p-3.5 rounded-xl border border-gray-800">
+          <div class="text-emerald-400 font-bold">③ 2027 Q2~Q3中 (4~7月)：突破五萬主升段</div>
+          <div class="text-gray-300 mt-1 font-mono">50,200 ➔ 54,800 點</div>
+          <div class="text-gray-400 mt-1 leading-relaxed">Fed 轉向預防性降息＋台積電 N2 獲利大爆發，外資回補空單，正式突破五萬大關並於盛夏挑戰 54,800 點高峰。</div>
+        </div>
+        <div class="bg-gray-800/50 p-3.5 rounded-xl border border-gray-800">
+          <div class="text-purple-400 font-bold">④ 2027 Q3末~Q4 (8~10月)：登頂後回測支撐</div>
+          <div class="text-gray-300 mt-1 font-mono">54,800 ➔ 51,200 點</div>
+          <div class="text-gray-400 mt-1 leading-relaxed">反映 2028 總統大選前地緣政治避險與 CSP 資本支出增速放緩，自高點拉回約 3,600 點，回測五萬大關轉為長線鐵板。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-gray-500 py-4 border-t border-gray-800">
+      臺灣期貨交易所（TAIFEX）與臺灣證券交易所（TWSE）歷史公開數據整合呈現 • 多情境量化推演模型
+    </footer>
+  </div>
+
+  <!-- Data Sources -->
+  <script src="./data/data.js"></script>
+  <script src="./data/forecast.js"></script>
+
+  <!-- Interactive Logic -->
+  <script>
+    let marketChart = null;
+    let forecastChart = null;
+
+    // 1. 歷史走勢圖邏輯
+    function getFilteredData(range) {
+      const data = window.MARKET_DATA || [];
+      if (range === 'all') return data;
+      if (range === '2026') return data.filter(d => d.date.startsWith('2026'));
+      if (range === '2025') return data.filter(d => d.date.startsWith('2025'));
+      if (range === '2024') return data.filter(d => d.date.startsWith('2024'));
+      if (range === '6m') {
+        const cutoff = new Date('2026-04-27').toISOString().split('T')[0];
+        return data.filter(d => d.date >= cutoff);
+      }
+      return data;
+    }
+
+    function renderMarketChart(range) {
+      const filtered = getFilteredData(range);
+      const labels = filtered.map(d => d.date);
+      const taiexPrices = filtered.map(d => d.taiex_close);
+      const totalOI = filtered.map(d => d.total_oi);
+
+      const barColors = totalOI.map(val => val >= 0 ? 'rgba(16, 185, 129, 0.75)' : 'rgba(244, 63, 94, 0.45)');
+      const barBorderColors = totalOI.map(val => val >= 0 ? 'rgba(16, 185, 129, 1)' : 'rgba(244, 63, 94, 0.8)');
+
+      const ctx = document.getElementById('marketChart').getContext('2d');
+      const priceGradient = ctx.createLinearGradient(0, 0, 0, 400);
+      priceGradient.addColorStop(0, 'rgba(6, 182, 212, 0.25)');
+      priceGradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+
+      if (marketChart) marketChart.destroy();
+
+      marketChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: 'line',
+              label: '台股加權指數 (TAIEX)',
+              data: taiexPrices,
+              borderColor: '#06b6d4',
+              backgroundColor: priceGradient,
+              borderWidth: 2.2,
+              fill: true,
+              tension: 0.15,
+              pointRadius: filtered.length > 150 ? 0 : 2,
+              pointHoverRadius: 5,
+              yAxisID: 'yTaiex',
+              order: 1
+            },
+            {
+              type: 'bar',
+              label: '三大法人未平倉「合計」',
+              data: totalOI,
+              backgroundColor: barColors,
+              borderColor: barBorderColors,
+              borderWidth: 1,
+              barPercentage: 0.85,
+              categoryPercentage: 0.9,
+              yAxisID: 'yOI',
+              order: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              padding: 12,
+              callbacks: {
+                title: items => '📅 日期：' + items[0].label,
+                label: context => {
+                  const val = context.parsed.y;
+                  if (context.dataset.yAxisID === 'yTaiex') {
+                    return `📈 加權指數：${val.toLocaleString()} 點`;
+                  }
+                  return `📊 三大法人合計未平倉：${val > 0 ? '+' : ''}${val.toLocaleString()} 口`;
+                },
+                afterBody: items => {
+                  const row = filtered[items[0].dataIndex];
+                  if (!row) return '';
+                  return [
+                    '---------------------------',
+                    `   • 外資淨未平倉：${row.foreign_oi > 0 ? '+' : ''}${row.foreign_oi.toLocaleString()} 口`,
+                    `   • 投信淨未平倉：${row.it_oi > 0 ? '+' : ''}${row.it_oi.toLocaleString()} 口`,
+                    `   • 自營淨未平倉：${row.dealer_oi > 0 ? '+' : ''}${row.dealer_oi.toLocaleString()} 口`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(31, 41, 55, 0.6)' },
+              ticks: { color: '#9ca3af', maxTicksLimit: 12 }
+            },
+            yTaiex: {
+              type: 'linear',
+              position: 'left',
+              title: { display: true, text: '加權指數 (點)', color: '#06b6d4' },
+              grid: { color: 'rgba(31, 41, 55, 0.5)' },
+              ticks: { color: '#06b6d4', callback: v => v.toLocaleString() }
+            },
+            yOI: {
+              type: 'linear',
+              position: 'right',
+              title: { display: true, text: '未平倉合計 (口)', color: '#10b981' },
+              grid: { drawOnChartArea: false },
+              ticks: { color: '#9ca3af', callback: v => (v > 0 ? '+' : '') + v.toLocaleString() }
+            }
+          }
+        }
+      });
+    }
+
+    // 2. 未來半年～一年走勢預測圖邏輯
+    function renderForecastChart(horizon = '1y') {
+      const allForecast = window.FORECAST_DATA || [];
+      const forecast = horizon === '6m'
+        ? allForecast.filter(d => d.date <= '2027-04-30')
+        : allForecast;
+      const labels = forecast.map(d => d.date);
+      const baseBox = forecast.map(d => d.base_box);
+      const bearCorrection = forecast.map(d => d.bear_correction);
+      const bullOptimistic = forecast.map(d => d.bull_optimistic);
+
+      const ctx = document.getElementById('forecastChart').getContext('2d');
+      const amberGradient = ctx.createLinearGradient(0, 0, 0, 420);
+      amberGradient.addColorStop(0, 'rgba(245, 158, 11, 0.22)');
+      amberGradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+
+      if (forecastChart) forecastChart.destroy();
+
+      forecastChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '劇本 B (60% 最高機率)：前半年大箱型洗盤 ➔ 後半年突破五萬衝 54.8k ➔ Q4回測 51.2k',
+              data: baseBox,
+              borderColor: '#f59e0b',
+              backgroundColor: amberGradient,
+              borderWidth: 3.5,
+              tension: 0.3,
+              pointRadius: 5,
+              pointHoverRadius: 8,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#f59e0b',
+              fill: true,
+              order: 1
+            },
+            {
+              label: '劇本 C (25% 次高機率)：深度回測 41.8k 年線 ➔ 下半年溫和復甦至 47.5k~49.2k',
+              data: bearCorrection,
+              borderColor: '#f43f5e',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              tension: 0.3,
+              pointRadius: 4,
+              pointBackgroundColor: '#f43f5e',
+              fill: false,
+              order: 2
+            },
+            {
+              label: '劇本 A (15% 低機率)：不經洗盤直衝 58.2k ➔ 下半年劇烈泡沫修正',
+              data: bullOptimistic,
+              borderColor: '#10b981',
+              borderWidth: 1.8,
+              borderDash: [3, 4],
+              tension: 0.3,
+              pointRadius: 3.5,
+              pointBackgroundColor: '#10b981',
+              fill: false,
+              order: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { color: '#e5e7eb', usePointStyle: true, boxWidth: 10, padding: 16 }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              padding: 12,
+              callbacks: {
+                title: items => {
+                  const item = forecast[items[0].dataIndex];
+                  return `📅 時點：${items[0].label} 【${item ? item.phase : ''}】`;
+                },
+                label: context => `${context.dataset.label.split('：')[0]}：${context.parsed.y.toLocaleString()} 點`,
+                afterBody: items => {
+                  const item = forecast[items[0].dataIndex];
+                  return item ? ['\n📌 關鍵市場邏輯：', '   ' + item.event] : '';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(31, 41, 55, 0.6)' },
+              ticks: { color: '#9ca3af' }
+            },
+            y: {
+              min: 40000,
+              max: 60000,
+              grid: { color: 'rgba(31, 41, 55, 0.5)' },
+              ticks: {
+                color: '#cbd5e1',
+                callback: v => v.toLocaleString() + ' 點'
+              },
+              title: { display: true, text: '預估加權指數 (點)', color: '#f59e0b' }
+            }
+          }
+        }
+      });
+    }
+
+    // 初始化事件
+    document.querySelectorAll('.range-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.range-btn').forEach(b => {
+          b.classList.remove('bg-cyan-600', 'text-white', 'shadow-sm');
+          b.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-gray-800');
+        });
+        btn.classList.add('bg-cyan-600', 'text-white', 'shadow-sm');
+        btn.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-gray-800');
+
+        renderMarketChart(btn.getAttribute('data-range'));
+      });
+    });
+
+    document.querySelectorAll('.horizon-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.horizon-btn').forEach(b => {
+          b.classList.remove('bg-amber-500', 'text-gray-950', 'font-semibold', 'shadow-sm');
+          b.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-gray-800', 'border', 'border-gray-700');
+        });
+        btn.classList.add('bg-amber-500', 'text-gray-950', 'font-semibold', 'shadow-sm');
+        btn.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-gray-800', 'border', 'border-gray-700');
+
+        renderForecastChart(btn.getAttribute('data-horizon'));
+      });
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderMarketChart('all');
+      renderForecastChart('1y');
+    });
+  </script>
+</body>
+</html>
